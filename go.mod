@@ -1,3 +1,3 @@
-module github.com/vguhesan/resfulserver
+module github.com/vguhesan/restfulserver
 
 go 1.15
