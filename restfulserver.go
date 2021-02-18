@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
-
-func homePage(w http.ResponseWriter, r *http.Request){
+func homeEndpoint(w http.ResponseWriter, r *http.Request){
     fmt.Fprintf(w, "Welcome to the HomePage!")
     fmt.Println("Endpoint Hit: homePage")
 }
@@ -19,10 +20,11 @@ func helloEndpoint(w http.ResponseWriter, r *http.Request){
 }
 
 func handleRequests() {
-    http.HandleFunc("/", homePage)
-	http.HandleFunc("/hello", helloEndpoint)
-    log.Fatal(http.ListenAndServe(":8080", nil))
+	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/", homeEndpoint)
+	router.HandleFunc("/hello", helloEndpoint)
 	fmt.Println("Server listening on port 8080")
+    log.Fatal(http.ListenAndServe(":8080", router))
 }
 
 func main() {
