@@ -14,6 +14,7 @@ import (
 // ServerHook has a pointer handle to shutdown the webserver. This enables testing the code modular
 type ServerHook struct {
 	srv *http.Server
+	serverStartTime time.Time
 }
 
 var srvHook ServerHook
@@ -54,11 +55,54 @@ func concatEndpoint(w http.ResponseWriter, r *http.Request){
 	respondWithJSON(w, http.StatusCreated, result)
 }
 
+type timeRequest struct {
+	FutureTime string `json:"FutureTime"`
+}
+
+type timeResponse struct {
+	Duration string `json:"Duration"`
+}
+
+type errorJSONResponse struct {
+	Error string `json:"Error"`
+}
+
+func subtractTime(time1,time2 time.Time) float64 { 
+	diff := time2.Sub(time1).Seconds()  
+	return diff
+}
+
+// UptimeDiff handler
+func futureUptimeEndpoint(w http.ResponseWriter, r *http.Request){
+	fmt.Println("Endpoint Hit: futureuptime")
+	var timereq timeRequest
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&timereq); err != nil {
+		var error errorJSONResponse
+		error.Error = "Invalid request payloadd"
+		respondWithJSON(w, http.StatusCreated, error)
+        return
+    }
+    defer r.Body.Close()
+	timeStart := srvHook.serverStartTime
+	timeReqInTime, err := time.Parse(time.RFC3339, timereq.FutureTime)
+	if err != nil {
+		var error errorJSONResponse
+		error.Error = "Unparsable Payloadd"
+		respondWithJSON(w, http.StatusCreated, error)
+        return
+	}
+	dur := fmt.Sprintf("%d", int(subtractTime(timeStart,timeReqInTime)))
+	result := timeResponse{ Duration : dur}
+	respondWithJSON(w, http.StatusCreated, result)
+}
+
 func handleRequests() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", homeEndpoint)
 	router.HandleFunc("/hello", helloEndpoint)
 	router.HandleFunc("/concat", concatEndpoint).Methods("POST")
+	router.HandleFunc("/futureuptime", futureUptimeEndpoint).Methods("POST")
 	fmt.Println("Server listening on port 8080")
 	srvHook.srv = &http.Server{
         Handler:      router,
@@ -84,6 +128,7 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 func init() {
 	println("Starting webserver on port:8080 . . .")
 	go handleRequests()
+	srvHook.serverStartTime = time.Now()
 }
 
 func main() {
