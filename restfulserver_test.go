@@ -9,13 +9,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHelloEndPoint(t *testing.T) {
-	go handleRequests()
+var srvURL = "http://localhost:8080"
 
+func TestHelloEndPoint(t *testing.T) {
+	
 	client := &http.Client{
-		Timeout: 1 * time.Second,
+		Timeout: 3 * time.Second,
 	}
-	r, _ := http.NewRequest("GET", "http://localhost:8080/hello", nil)
+	r, _ := http.NewRequest("GET", srvURL+"/hello", nil)
 	resp, err := client.Do(r)
 	if err != nil {
 		panic(err)
@@ -27,3 +28,4 @@ func TestHelloEndPoint(t *testing.T) {
 	}
 	assert.Equal(t, []byte("{\"hello\"}"), body)
 }
+
