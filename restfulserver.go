@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/hako/durafmt"
 )
 
 // ServerHook has a pointer handle to shutdown the webserver. This enables testing the code modular
@@ -67,9 +68,10 @@ type errorJSONResponse struct {
 	Error string `json:"Error"`
 }
 
-func subtractTime(time1,time2 time.Time) float64 { 
-	diff := time2.Sub(time1).Seconds()  
-	return diff
+func subtractTime(time1,time2 time.Time) string { 
+	diff := time2.Sub(time1)
+	duration := durafmt.Parse(diff.Round(time.Minute)).LimitFirstN(2)
+	return fmt.Sprint(duration)
 }
 
 // UptimeDiff handler
@@ -92,7 +94,7 @@ func futureUptimeEndpoint(w http.ResponseWriter, r *http.Request){
 		respondWithJSON(w, http.StatusCreated, error)
         return
 	}
-	dur := fmt.Sprintf("%d", int(subtractTime(timeStart,timeReqInTime)))
+	dur := subtractTime(timeStart,timeReqInTime)
 	result := timeResponse{ Duration : dur}
 	respondWithJSON(w, http.StatusCreated, result)
 }

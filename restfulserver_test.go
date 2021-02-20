@@ -86,7 +86,7 @@ func TestFutureUptimeEndPoint(t *testing.T) {
 	}
 	var m map[string]interface{}
 	json.Unmarshal(body, &m)
-	var expectedValue = "86399" //~23.999-hrs
+	var expectedValue = "1 day" //~23.999-hrs
 	var actualValue = m["Duration"]
 	if m["Error"] != nil {
 		println(m["Error"])
